@@ -23,3 +23,7 @@ sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
 sudo echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
+ ---
+ - https://docs.pritunl.com/docs/aws
+ - https://docs.pritunl.com/docs/pritunl-link
+ - https://docs.pritunl.com/docs/internal-dns
