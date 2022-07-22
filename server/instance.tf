@@ -4,33 +4,31 @@ resource "aws_instance" "pritunl_server" {
   subnet_id              = data.terraform_remote_state.baseline.outputs.public_subnets[0]
   key_name               = aws_key_pair.pritunl_server.id
   security_groups        = [aws_security_group.pritunl_server.id]
-  # user_data              = file("${path.module}/pritunl.sh")
-  lifecycle {
-    prevent_destroy = false
+  root_block_device {
+    volume_size = 30 
+    volume_type = "gp3"
   }
-
-#   provisioner "file" {
-#     source = file("${path.module}/pritunl.sh")
-#     destination = "/tmp/pritunl.sh"
-#   }
-
-  provisioner "file" {
-    content     = var.pritunl_script # file("${path.module}/pritunl.sh")
-    destination = "/tmp/pritunl.sh"
-  }
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/pritunl.sh",
-      "sudo /tmp/pritunl.sh",
-      "sudo pritunl setup-key/etc/pritunl.conf",
-    ]
-  }
-  connection {
+    connection {
     type        = "ssh"
     user        = "ec2-user"
     private_key = tls_private_key.key.private_key_pem
     host        = self.public_ip
   }
+
+  provisioner "file" {
+    content     = var.pritunl_script
+    destination = "/tmp/pritunl.sh"
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod +x /tmp/pritunl.sh",
+      "cp /tmp/pritunl.sh /home/ec2-user",
+      "sudo ./pritunl.sh",
+      "sudo pritunl setup-key /etc/pritunl.conf"
+    ]
+  }
+ 
+
   tags = {
     Name = terraform.workspace
   }
